@@ -1,0 +1,25 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Candidate {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  status    String   @default("APPLIED")
+  createdAt DateTime @default(now())
+
+  @@index([status])
+  @@index([createdAt])
+}
+model Question {
+  id       String   @id @default(uuid())
+  question String
+  options  String[]
+  answer   Int
+}
