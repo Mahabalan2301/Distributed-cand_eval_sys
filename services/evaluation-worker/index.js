@@ -3,7 +3,7 @@ if (process.env.NODE_ENV !== "production") {
 }
 const { PrismaClient } = require("@prisma/client");
 const Redis = require("ioredis");
-const fetch = require("node-fetch");
+
 const createLogger = require("./shared/logger");
 const logger = createLogger("evaluation-worker");
 
@@ -16,7 +16,7 @@ if (!BACKEND_URL) {
 }
 
 logger.info("Evaluation worker started and subscribed to 'evaluation' channel");
-redis.subscribe("evaluation");
+await redis.subscribe("evaluation");
 
 
 redis.on("message", async (channel, message) => {
@@ -116,11 +116,3 @@ async function notifyBackend(data) {
     console.error("❌ Failed to contact notification service:", err.message);
   }
 }
-// Dummy server for Render health check
-require("http")
-  .createServer((req, res) => {
-    res.end("Worker is running");
-  })
-  .listen(process.env.PORT || 10000, () => {
-    console.log("Worker health server running");
-  });
