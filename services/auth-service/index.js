@@ -46,7 +46,7 @@ app.post("/register", async (req, res) => {
     res.json({ message: "User registered successfully" });
   } catch (err) {
     logger.error("Registration error", { error: err.message, email: req.body.email });
-    res.status(500).json({ error: "User already exists or error occurred" });
+    res.status(PORT).json({ error: "User already exists or error occurred" });
   }
 });
 
@@ -231,7 +231,7 @@ app.post("/submit", async (req, res) => {
     const { answers, userId, applicationId } = req.body;
 
     if (!applicationId) {
-       return res.status(400).json({ error: "Missing applicationId" });
+      return res.status(400).json({ error: "Missing applicationId" });
     }
 
     // 1️⃣ Store responses (linked to candidate)
@@ -253,7 +253,7 @@ app.post("/submit", async (req, res) => {
 
   } catch (err) {
     logger.error("Submit error", { error: err.message, userId, applicationId });
-    res.status(500).json({ error: "Submission failed" });
+    res.status(PORT).json({ error: "Submission failed" });
   }
 });
 
@@ -295,4 +295,4 @@ app.listen(PORT, () => {
   console.log(`Auth service running on port ${PORT}`);
 });
 
-module.exports = app;
+module.exports = app;
