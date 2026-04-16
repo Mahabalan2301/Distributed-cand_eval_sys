@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-const createLogger = require("../shared/logger");
+const createLogger = require("./shared/logger");
 const logger = createLogger("auth-service");
 
 const express = require("express");

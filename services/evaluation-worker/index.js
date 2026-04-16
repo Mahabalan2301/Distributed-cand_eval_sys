@@ -2,7 +2,7 @@ require("dotenv").config();
 const { PrismaClient } = require("@prisma/client");
 const Redis = require("ioredis");
 const fetch = require("node-fetch");
-const createLogger = require("../shared/logger");
+const createLogger = require("./shared/logger");
 const logger = createLogger("evaluation-worker");
 
 const prisma = new PrismaClient();

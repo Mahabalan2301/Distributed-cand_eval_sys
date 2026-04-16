@@ -2,6 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const { createProxyMiddleware } = require("http-proxy-middleware");
 require("dotenv").config();
+const createLogger = require("./shared/logger");
+const logger = createLogger("api-gateway");
 
 const app = express();
 app.use(cors());
@@ -11,13 +13,10 @@ const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || "http://localhost:5000"
 
 // Logging Middleware for Gateway
 app.use((req, res, next) => {
-  console.log(JSON.stringify({
-    service: "api-gateway",
-    level: "info",
+  logger.info("Incoming request", {
     method: req.method,
-    url: req.url,
-    timestamp: new Date().toISOString()
-  }));
+    url: req.url
+  });
   next();
 });
 
@@ -46,10 +45,5 @@ app.use("/events", createProxyMiddleware({ target: AUTH_SERVICE_URL, changeOrigi
 app.use("/me", createProxyMiddleware({ target: AUTH_SERVICE_URL, changeOrigin: true }));
 
 app.listen(PORT, () => {
-  console.log(JSON.stringify({
-    service: "api-gateway",
-    level: "info",
-    message: `API Gateway running on port ${PORT}`,
-    timestamp: new Date().toISOString()
-  }));
+  logger.info(`API Gateway running on port ${PORT}`);
 });

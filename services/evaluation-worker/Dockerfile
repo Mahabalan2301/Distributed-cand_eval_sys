@@ -2,15 +2,17 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy shared modules
-COPY services/shared ./services/shared
+# Copy package files and install dependencies
+COPY package*.json ./
+RUN npm install
 
-# Copy worker specific files
-COPY services/evaluation-worker/package*.json ./services/evaluation-worker/
-RUN cd services/evaluation-worker && npm install
+# Copy all files (including local shared/logger.js)
+COPY . .
 
-COPY services/evaluation-worker ./services/evaluation-worker
-RUN cd services/evaluation-worker && npx prisma generate
+# Generate Prisma client
+RUN DATABASE_URL="postgresql://postgres:postgres@localhost:5432/postgres" npx prisma generate
 
-WORKDIR /app/services/evaluation-worker
+# No port exposed for worker (usually)
+# EXPOSE 5001
+
 CMD ["node", "index.js"]

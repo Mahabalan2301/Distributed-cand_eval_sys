@@ -2,18 +2,13 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy shared modules first
-COPY services/shared ./services/shared
+COPY package*.json ./
+RUN npm install
 
-# Copy auth-service specific files
-COPY services/auth-service/package*.json ./services/auth-service/
-RUN cd services/auth-service && npm install
+COPY . .
 
-COPY services/auth-service ./services/auth-service
-RUN cd services/auth-service && npx prisma generate
+RUN DATABASE_URL="postgresql://postgres:postgres@localhost:5432/postgres" npx prisma generate
 
 EXPOSE 5000
 
-# Start from the auth-service directory
-WORKDIR /app/services/auth-service
 CMD ["node", "index.js"]
