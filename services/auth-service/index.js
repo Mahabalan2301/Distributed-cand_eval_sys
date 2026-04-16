@@ -292,7 +292,7 @@ app.post("/notify", (req, res) => {
   res.sendStatus(200);
 });
 app.listen(PORT, () => {
-  logger.info(`Auth service running on port ${PORT}`);
+  console.log(`Auth service running on port ${PORT}`);
 });
 
 module.exports = app;
