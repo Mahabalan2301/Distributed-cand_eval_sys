@@ -16,7 +16,7 @@ if (!BACKEND_URL) {
 }
 
 logger.info("Evaluation worker started and subscribed to 'evaluation' channel");
-await redis.subscribe("evaluation");
+redis.subscribe("evaluation");
 
 
 redis.on("message", async (channel, message) => {
