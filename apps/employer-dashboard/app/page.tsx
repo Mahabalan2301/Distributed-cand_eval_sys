@@ -12,7 +12,7 @@ export default function EmployerDashboard() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8000/auth/candidates");
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/candidates`);
       const d = await res.json();
 
       setData(d);
@@ -28,7 +28,7 @@ export default function EmployerDashboard() {
     fetchData();
 
     // 📡 Real-time Updates via SSE
-    const eventSource = new EventSource("http://localhost:8000/auth/events");
+    const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_API_URL}/auth/events`);
 
     
     eventSource.onmessage = (event) => {

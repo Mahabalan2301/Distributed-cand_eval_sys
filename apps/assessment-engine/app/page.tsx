@@ -20,7 +20,7 @@ export default function AssessmentPage() {
         return;
       }
 
-      const res = await fetch("http://localhost:8000/assessment/validate-assessment", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/assessment/validate-assessment`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -57,7 +57,7 @@ export default function AssessmentPage() {
         <h1 className="text-2xl font-bold text-red-500">❌ Access Denied</h1>
         <p className="text-gray-600">You don't have a valid assessment token or it has expired.</p>
         <a 
-          href="http://localhost:3000/dashboard" 
+          href={`${process.env.NEXT_PUBLIC_PORTAL_URL}/dashboard`}
           className="bg-blue-600 text-white px-4 py-2 rounded w-fit hover:bg-blue-700 transition-colors"
         >
           Go back to Portal
@@ -83,7 +83,7 @@ function QuestionUI({ userId, applicationId }: { userId: string; applicationId: 
 
   useEffect(() => {
     const fetchQuestions = async () => {
-      const res = await fetch("http://localhost:8000/assessment/questions", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/assessment/questions`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -95,7 +95,7 @@ function QuestionUI({ userId, applicationId }: { userId: string; applicationId: 
     fetchQuestions();
 
     // 📡 Listen for the score evaluation event
-    const eventSource = new EventSource(`http://localhost:8000/assessment/events?token=${token}`);
+    const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_API_URL}/assessment/events?token=${token}`);
 
     eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -121,7 +121,7 @@ function QuestionUI({ userId, applicationId }: { userId: string; applicationId: 
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      await fetch("http://localhost:8000/assessment/submit", {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/assessment/submit`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -186,7 +186,7 @@ function QuestionUI({ userId, applicationId }: { userId: string; applicationId: 
             </p>
             <p className="mt-4 text-zinc-500 text-sm">You can now close this tab and return to the dashboard.</p>
              <a 
-              href="http://localhost:3000/dashboard" 
+              href={`${process.env.NEXT_PUBLIC_PORTAL_URL}/dashboard`}
               className="inline-block mt-4 text-green-700 font-semibold hover:underline"
             >
               ← Back to Dashboard

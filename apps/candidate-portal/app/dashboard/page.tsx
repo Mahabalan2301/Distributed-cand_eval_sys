@@ -42,7 +42,7 @@ export default function Dashboard() {
     }
 
     try {
-      const res = await fetch("http://localhost:8000/auth/me", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -66,7 +66,7 @@ export default function Dashboard() {
     setMounted(true);
     fetchProfile();
 
-    const eventSource = new EventSource("http://localhost:8000/auth/events");
+    const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_API_URL}/auth/events`);
 
     eventSource.onmessage = () => fetchProfile();
     return () => eventSource.close();
@@ -75,7 +75,7 @@ export default function Dashboard() {
   const handleStart = async () => {
     const token = localStorage.getItem("token");
     try {
-      const res = await fetch("http://localhost:8000/assessment/start-assessment", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/assessment/start-assessment`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -84,7 +84,7 @@ export default function Dashboard() {
       });
 
       const data = await res.json();
-      router.push(`http://localhost:3002?token=${data.token}`);
+      router.push(`${process.env.NEXT_PUBLIC_ASSESSMENT_URL}?token=${data.token}`);
     } catch (err) {
       console.error("Error starting assessment:", err);
     }
@@ -206,7 +206,7 @@ export default function Dashboard() {
                           <button 
                             onClick={async () => {
                               const token = localStorage.getItem("token");
-                              const res = await fetch("http://localhost:8000/auth/reset-assessment", {
+                              const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/reset-assessment`, {
                                 method: "POST",
                                 headers: { Authorization: `Bearer ${token}` }
                               });

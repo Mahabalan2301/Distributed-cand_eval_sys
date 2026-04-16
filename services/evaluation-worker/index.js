@@ -116,3 +116,13 @@ async function notifyBackend(data) {
     console.error("❌ Failed to contact notification service:", err.message);
   }
 }
+const http = require("http");
+
+const PORT = process.env.PORT || 10000;
+
+http.createServer((req, res) => {
+  res.writeHead(200, { "Content-Type": "text/plain" });
+  res.end("Worker is running");
+}).listen(PORT, "0.0.0.0", () => {
+  console.log(`Worker health server running on port ${PORT}`);
+});

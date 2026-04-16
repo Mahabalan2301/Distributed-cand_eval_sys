@@ -33,8 +33,8 @@ export default function AuthPage() {
     setLoading(true);
     
     const endpoint = isLogin
-      ? "http://localhost:8000/auth/login"
-      : "http://localhost:8000/auth/register";
+      ? `${process.env.NEXT_PUBLIC_API_URL}/auth/login`
+      : `${process.env.NEXT_PUBLIC_API_URL}/auth/register`;
 
     try {
       const res = await fetch(endpoint, {
