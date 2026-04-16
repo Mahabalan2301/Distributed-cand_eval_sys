@@ -1,4 +1,6 @@
-require("dotenv").config();
+if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config();
+}
 console.log("LOADED CORRECT INDEX FILE");
 
 const createLogger = require("./shared/logger");
@@ -47,7 +49,7 @@ app.post("/register", async (req, res) => {
     res.json({ message: "User registered successfully" });
   } catch (err) {
     logger.error("Registration error", { error: err.message, email: req.body.email });
-    res.status(PORT).json({ error: "User already exists or error occurred" });
+    res.status(500).json({ error: "User already exists or error occurred" });
   }
 });
 
@@ -254,7 +256,7 @@ app.post("/submit", async (req, res) => {
 
   } catch (err) {
     logger.error("Submit error", { error: err.message, userId, applicationId });
-    res.status(PORT).json({ error: "Submission failed" });
+    res.status(500).json({ error: "Submission failed" });
   }
 });
 

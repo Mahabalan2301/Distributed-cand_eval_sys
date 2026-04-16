@@ -8,7 +8,7 @@ const logger = createLogger("api-gateway");
 const app = express();
 app.use(cors());
 
-const PORT = 8000;
+const PORT = process.env.PORT || 8000;
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || "http://localhost:5000";
 
 // Logging Middleware for Gateway
