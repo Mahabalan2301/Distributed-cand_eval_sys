@@ -116,3 +116,11 @@ async function notifyBackend(data) {
     console.error("❌ Failed to contact notification service:", err.message);
   }
 }
+// Dummy server for Render health check
+require("http")
+  .createServer((req, res) => {
+    res.end("Worker is running");
+  })
+  .listen(process.env.PORT || 10000, () => {
+    console.log("Worker health server running");
+  });

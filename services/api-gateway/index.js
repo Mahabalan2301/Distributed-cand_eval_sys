@@ -8,10 +8,14 @@ const createLogger = require("./shared/logger");
 const logger = createLogger("api-gateway");
 
 const app = express();
-app.use(cors());
+app.use(express.json());
 
 const PORT = process.env.PORT || 8000;
-const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || "http://localhost:5000";
+const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
+
+if (!AUTH_SERVICE_URL) {
+  throw new Error("AUTH_SERVICE_URL not set");
+}
 
 // Logging Middleware for Gateway
 app.use((req, res, next) => {
