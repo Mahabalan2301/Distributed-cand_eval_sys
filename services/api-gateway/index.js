@@ -1,7 +1,9 @@
 const express = require("express");
 const cors = require("cors");
 const { createProxyMiddleware } = require("http-proxy-middleware");
-require("dotenv").config();
+if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config();
+}
 const createLogger = require("./shared/logger");
 const logger = createLogger("api-gateway");
 

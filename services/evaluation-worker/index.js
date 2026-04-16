@@ -1,4 +1,6 @@
-require("dotenv").config();
+if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config();
+}
 const { PrismaClient } = require("@prisma/client");
 const Redis = require("ioredis");
 const fetch = require("node-fetch");
@@ -7,6 +9,11 @@ const logger = createLogger("evaluation-worker");
 
 const prisma = new PrismaClient();
 const redis = new Redis(process.env.REDIS_URL);
+const BACKEND_URL = process.env.AUTH_SERVICE_URL;
+
+if (!BACKEND_URL) {
+  throw new Error("AUTH_SERVICE_URL not set");
+}
 
 logger.info("Evaluation worker started and subscribed to 'evaluation' channel");
 redis.subscribe("evaluation");
@@ -92,7 +99,7 @@ redis.on("message", async (channel, message) => {
 
 async function notifyBackend(data) {
   try {
-    const res = await fetch("http://localhost:5000/notify", {
+    const res = await fetch(`${BACKEND_URL}/notify`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -108,4 +115,4 @@ async function notifyBackend(data) {
   } catch (err) {
     console.error("❌ Failed to contact notification service:", err.message);
   }
-}
+}
