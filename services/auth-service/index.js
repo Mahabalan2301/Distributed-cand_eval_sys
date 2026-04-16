@@ -1,4 +1,5 @@
 require("dotenv").config();
+console.log("LOADED CORRECT INDEX FILE");
 
 const createLogger = require("./shared/logger");
 const logger = createLogger("auth-service");
