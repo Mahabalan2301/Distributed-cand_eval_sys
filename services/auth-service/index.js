@@ -248,8 +248,8 @@ app.post("/submit", async (req, res) => {
       });
     }
 
-    // 2️⃣ Publish event to Redis
-    await redis.publish("evaluation", JSON.stringify({ userId, applicationId }));
+    // 2️⃣ Queue event in Redis (Reliable Queue)
+    await redis.lpush("evaluation_queue", JSON.stringify({ userId, applicationId }));
 
     logger.info("Submission received", { userId, applicationId });
     res.json({ message: "Submission received. Evaluating..." });
