@@ -105,13 +105,19 @@ processQueue();
 
 async function notifyBackend(data) {
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000); // 5s max wait
+
     const res = await fetch(`${BACKEND_URL}/notify`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
+      signal: controller.signal,
     });
+
+    clearTimeout(timeout);
 
     if (res.ok) {
       console.log(`✅ Notification (${data.status}) sent successfully.`);
@@ -119,7 +125,11 @@ async function notifyBackend(data) {
       console.error(`❌ Notification (${data.status}) failed with status:`, res.status);
     }
   } catch (err) {
-    console.error("❌ Failed to contact notification service:", err.message);
+    if (err.name === 'AbortError') {
+      console.error("⏰ Notification timed out after 5s, moving on to next task.");
+    } else {
+      console.error("❌ Failed to contact notification service:", err.message);
+    }
   }
 }
 const http = require("http");

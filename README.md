@@ -1,82 +1,99 @@
 # 🚀 DistriEval: Distributed Candidate Evaluation System
 
+A state-of-the-art, decentralized candidate evaluation platform built for high reliability and scale.
 
-A state-of-the-art, real-time distributed system for managing and evaluating candidate technical assessments. This project features a decoupled architecture spanning multiple portals and microservices, connected via Redis and PostgreSQL.
+## 📖 Architecture Documentation
+For a deep dive into the system's design and engineering decisions, see the **[docs/](file:///c:/Users/Mahalakshmi/Desktop/zetheta/docs/)** folder:
+- **[Initial Plan & Roadmap](file:///c:/Users/Mahalakshmi/Desktop/zetheta/docs/plan.md)**
+- **[Database & Schema Design](file:///c:/Users/Mahalakshmi/Desktop/zetheta/docs/schema_design.md)**
+- **[API Gateway & Service Design](file:///c:/Users/Mahalakshmi/Desktop/zetheta/docs/api_design.md)**
+- **[Reliable Async Pipeline](file:///c:/Users/Mahalakshmi/Desktop/zetheta/docs/pipeline_design.md)**
+- **[Secure Token Handshake](file:///c:/Users/Mahalakshmi/Desktop/zetheta/docs/token_design.md)**
 
-## 🏗️ System Architecture
+## 🛡️ Performance & Reliability
+- **Fault Tolerance**: Redis-based async pipeline with **Queue-based** (LPUSH/BLPOP) recovery to ensure zero message loss.
+- **Idempotency**: Retry-safe scoring logic using **PostgreSQL Upserts** to maintain data integrity under high load.
+- **Low Latency**: Real-time evaluation updates via **Server-Sent Events (SSE)** for near-instant user feedback.
+- **Optimized Retrieval**: Optimized Prisma **Database Indexing** on all hot query paths (Candidate status, createdAt).
+- **Scalability**: Decoupled microservices architecture designed to run on independent clusters.
 
-1.  **API Gateway (Port 8000)**: [NEW] The single entry point for all frontend applications. Handles routing and proxying to internal services.
-2.  **Candidate Portal (Port 3000)**: Where students register, login, and view their performance history.
-3.  **Employer Dashboard (Port 3001)**: A real-time monitoring tool for recruiters to track candidate progress and scores.
-4.  **Assessment Engine (Port 3002)**: A secure, isolated environment for taking tests using one-time tokens.
-5.  **Auth Service (Port 5000)**: Internal service handling authentication, assessment coordination, and real-time event broadcasting (SSE).
-6.  **Evaluation Worker**: Internal service that listens to Redis, calculates scores asynchronously, and updates the database.
+## 🗺️ System Architecture
 
-## 🛠️ Technical Stack
-
-### **Frontend & UI**
-- **Framework**: Next.js 16 (App Router)
-- **Library**: React 19
-- **Styling**: Tailwind CSS 4
-- **Animations**: Framer Motion
-- **Data Visualization**: Recharts (for performance progress)
-- **Icons**: Lucide React
-
-### **Backend & Infrastructure**
-- **Runtime**: Node.js
-- **API**: Express.js (Service & Gateway)
-- **Monitoring**: Structured JSON Logging (via internal logger)
-- **Database ORM**: Prisma (Optimized with indexes)
-- **Primary Database**: PostgreSQL
-- **Message Broker**: Redis (Pub/Sub for evaluation events)
-- **Security**: JWT & Nonce-based secure test sessions
-- **Testing**: Jest & Supertest (Backend coverage)
-
-## 🌟 Key Features Implemented
-
-### **1. API Gateway Decoupling**
-Frontend applications no longer talk directly to the Auth Service. All requests are routed through the **API Gateway**, allowing for easier service replacement and better security scaling.
-
-### **2. Structured JSON Logging**
-All backend services (`auth-service`, `evaluation-worker`, `api-gateway`) now emit structured JSON logs. This enables professional-grade observability and log analysis in production environments.
-
-### **3. Optimized Database Performance**
-The Prisma schema has been enhanced with composite and single-field indexes on `candidateId`, `questionId`, `status`, and `applicationId` to eliminate full table scans in hot query paths.
-
-### **4. Full Docker Orchestration**
-The entire ecosystem—databases, microservices, and the gateway—can be spun up with one command, ensuring environment parity between development and production.
-
-## 🏃 Getting Started
-
-### **1. Complete System (Docker Compose)**
-The recommended way to run the backend and infrastructure:
-```powershell
-docker compose up --build
-```
-This starts: `postgres`, `redis`, `auth_service`, `evaluation_worker`, and `api_gateway`.
-
-### **2. Running Tests**
-To verify the backend logic:
-```powershell
-cd services/auth-service
-npm test
+```mermaid
+graph TD
+    CP[Candidate Portal - Vercel] --> AG[API Gateway - Render]
+    AE[Assessment Engine - Vercel] --> AG
+    ED[Employer Dashboard - Vercel] --> AG
+    
+    AG --> AS[Auth Service - Render]
+    AS --> DB[(PostgreSQL - Supabase)]
+    AS --> RQ[[Redis Queue]]
+    
+    EW[Evaluation Worker - Render] -- Pulls Tasks --> RQ
+    EW -- Saves Scores --> DB
+    EW -- Notifies Completion --> AS
+    AS -- Real-time SSE --> CP
 ```
 
-### **3. Portals**
-Start the frontend applications locally:
-```powershell
-# Candidate Portal
-cd apps/candidate-portal
-npm run dev
+## 🌐 Live Deployment Links
 
-# Employer Dashboard
-cd apps/employer-dashboard
-npm run dev
+| Component | URL |
+| :--- | :--- |
+| **Candidate Portal** | [candidate-lime.vercel.app](https://candidate-lime.vercel.app/) |
+| **Employer Dashboard** | [employer-dashboard-zetheta.vercel.app](https://employer-dashboard-zetheta.vercel.app/) |
+| **Assessment Engine** | [assessment-engine-zetheta.vercel.app](https://assessment-engine-zetheta.vercel.app/) |
+| **API Gateway** | [api-gateway-o9g9.onrender.com](https://api-gateway-o9g9.onrender.com) |
+| **Auth Service** | [distributed-cand-eval-sys.onrender.com](https://distributed-cand-eval-sys.onrender.com) |
 
-# Assessment Engine
-cd apps/assessment-engine
-npm run dev
-```
+## 🛠️ Tech Stack
+
+- **Frontend**: Next.js 15 (App Router), Tailwind CSS, Framer Motion, Recharts.
+- **Backend**: Node.js, Express.js (API Gateway & Microservices).
+- **Persistence**: PostgreSQL (Supabase) with Prisma ORM.
+- **Messaging**: Redis (Reliable Queue using LPUSH/BLPOP).
+- **Communication**: JWT (Secure Auth), SSE (Server-Sent Events for real-time scores).
+- **Deployment**: Vercel (Frontends), Render (Backends), Supabase (Database).
+
+## ✨ Key Technical Features
+
+### 🔑 1. Cross-App Token Handshake
+Transitions from the Candidate Portal to the Assessment Engine are secured via a **Single-Use Token**. 
+- The Auth Service generates a token with a unique `nonce`.
+- The `nonce` is validated against Redis and deleted instantly upon entry.
+- This prevents link sharing and ensures each session is unique and time-bound.
+
+### 📥 2. Reliable Async Evaluation Pipeline
+We upgraded from Pub/Sub to a **Redis Queue (LPUSH/BLPOP)**.
+- **Durability**: If the worker restarts or goes offline, submissions stay safe in the queue.
+- **Zero Loss**: Every candidate's attempt is guaranteed to be processed.
+- **Efficiency**: The worker pulls tasks only when it's ready, preventing service overload.
+
+### ⚡ 3. Real-time SSE Updates
+The system uses **Server-Sent Events (SSE)** to provide an "instant" feel.
+- Once the worker finishes scoring, it notifies the Auth Service.
+- The Auth Service pushes the score directly to the candidate's browser.
+- No polling or page refreshing is required to see results.
+
+### 📊 4. Employer Performance Monitoring
+ Recruiters can monitor candidate status in real-time. Features include:
+- **Expandable History**: View all previous attempts for a candidate in one click.
+- **Idempotent Scoring**: Ensures that even if a message is processed twice, the candidate's data remains consistent.
+
+## 🏃 Local Development
+
+### Prerequisites
+- Docker & Docker Compose
+- Node.js 20+
+
+### Setup
+1. **Infrastructure**: Start the database, redis, and backend services.
+   ```bash
+   docker compose up --build
+   ```
+2. **Portals**: Start each frontend app.
+   ```bash
+   cd apps/candidate-portal && npm run dev
+   ```
 
 ---
-*Developed with a focus on enterprise-grade observability, high performance, and premium user experience.*
+*Developed with a focus on enterprise-grade reliability, real-time observability, and premium user experience.*

@@ -237,16 +237,13 @@ app.post("/submit", async (req, res) => {
       return res.status(400).json({ error: "Missing applicationId" });
     }
 
-    // 1️⃣ Store responses (linked to candidate)
-    for (const qId in answers) {
-      await prisma.response.create({
-        data: {
-          candidateId: userId,
-          questionId: qId,
-          selected: answers[qId],
-        },
-      });
-    }
+    // 1️⃣ Batch store all responses in one trip (linked to candidate)
+    const responseData = Object.entries(answers).map(([qId, selected]) => ({
+      candidateId: userId,
+      questionId: qId,
+      selected,
+    }));
+    await prisma.response.createMany({ data: responseData });
 
     // 2️⃣ Queue event in Redis (Reliable Queue)
     await redis.lpush("evaluation_queue", JSON.stringify({ userId, applicationId }));
