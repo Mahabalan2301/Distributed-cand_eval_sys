@@ -83,11 +83,7 @@ function QuestionUI({ userId, applicationId }: { userId: string; applicationId: 
 
   useEffect(() => {
     const fetchQuestions = async () => {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/assessment/questions`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/assessment/questions`);
       const data = await res.json();
       setQuestions(data);
     };
@@ -95,7 +91,7 @@ function QuestionUI({ userId, applicationId }: { userId: string; applicationId: 
     fetchQuestions();
 
     // 📡 Listen for the score evaluation event
-    const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_API_URL}/assessment/events?token=${token}`);
+    const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_API_URL}/assessment/events`);
 
     eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -112,7 +108,7 @@ function QuestionUI({ userId, applicationId }: { userId: string; applicationId: 
 
 
     return () => eventSource.close();
-  }, [userId, applicationId, token]);
+  }, [userId, applicationId]);
 
   const handleSelect = (qId: string, optionIndex: number) => {
     setAnswers({ ...answers, [qId]: optionIndex });
@@ -125,7 +121,6 @@ function QuestionUI({ userId, applicationId }: { userId: string; applicationId: 
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({ answers, userId, applicationId }),
       });

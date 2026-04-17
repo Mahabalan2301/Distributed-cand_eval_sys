@@ -9,7 +9,8 @@ const logger = createLogger("api-gateway");
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+// NOTE: Do NOT use express.json() here — it consumes the request body stream
+// before http-proxy-middleware can forward it, causing POST requests to hang.
 
 const PORT = process.env.PORT || 8000;
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
@@ -27,29 +28,33 @@ app.use((req, res, next) => {
   next();
 });
 
-// Proxy Rules
-app.use("/auth", createProxyMiddleware({
+// Common proxy options
+const proxyOptions = (pathRewrite) => ({
   target: AUTH_SERVICE_URL,
   changeOrigin: true,
-  pathRewrite: {
-    "^/auth": "" // remove /auth prefix when forwarding to auth-service
+  timeout: 30000,
+  proxyTimeout: 30000,
+  ...(pathRewrite && { pathRewrite }),
+  on: {
+    error: (err, req, res) => {
+      logger.error("Proxy error", { error: err.message, url: req.url });
+      if (!res.headersSent) {
+        res.status(502).json({ error: "Service unavailable" });
+      }
+    }
   }
-}));
+});
 
-app.use("/assessment", createProxyMiddleware({
-  target: AUTH_SERVICE_URL,
-  changeOrigin: true,
-  pathRewrite: {
-    "^/assessment": "" // remove /assessment prefix
-  }
-}));
+// Proxy Rules
+app.use("/auth", createProxyMiddleware(proxyOptions({ "^/auth": "" })));
+app.use("/assessment", createProxyMiddleware(proxyOptions({ "^/assessment": "" })));
 
 // Fallback for direct assessment-engine calls if needed
-app.use("/questions", createProxyMiddleware({ target: AUTH_SERVICE_URL, changeOrigin: true }));
-app.use("/submit", createProxyMiddleware({ target: AUTH_SERVICE_URL, changeOrigin: true }));
-app.use("/validate-assessment", createProxyMiddleware({ target: AUTH_SERVICE_URL, changeOrigin: true }));
-app.use("/events", createProxyMiddleware({ target: AUTH_SERVICE_URL, changeOrigin: true }));
-app.use("/me", createProxyMiddleware({ target: AUTH_SERVICE_URL, changeOrigin: true }));
+app.use("/questions", createProxyMiddleware(proxyOptions()));
+app.use("/submit", createProxyMiddleware(proxyOptions()));
+app.use("/validate-assessment", createProxyMiddleware(proxyOptions()));
+app.use("/events", createProxyMiddleware(proxyOptions()));
+app.use("/me", createProxyMiddleware(proxyOptions()));
 
 app.listen(PORT, () => {
   logger.info(`API Gateway running on port ${PORT}`);

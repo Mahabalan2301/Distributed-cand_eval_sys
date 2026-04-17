@@ -8,6 +8,7 @@ export default function EmployerDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
   const [mounted, setMounted] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -186,35 +187,85 @@ export default function EmployerDashboard() {
                     ? Math.max(...candidate.scores.map((s: any) => s.score)) 
                     : null;
 
+                  const isExpanded = expandedId === candidate.id;
+
                   return (
-                    <tr key={candidate.id} className="hover:bg-slate-800/20 transition-colors group">
-                      <td className="px-6 py-5">
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 flex items-center justify-center text-blue-500 font-bold text-sm group-hover:border-blue-500/30 transition-colors">
-                            {candidate.email[0].toUpperCase()}
+                    <>
+                      <tr 
+                        key={candidate.id} 
+                        className="hover:bg-slate-800/20 transition-colors group cursor-pointer"
+                        onClick={() => setExpandedId(isExpanded ? null : candidate.id)}
+                      >
+                        <td className="px-6 py-5">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 flex items-center justify-center text-blue-500 font-bold text-sm group-hover:border-blue-500/30 transition-colors">
+                              {candidate.email[0].toUpperCase()}
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <span className="font-semibold text-slate-200">{candidate.email}</span>
+                              <svg 
+                                className={`w-4 h-4 text-slate-500 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} 
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </div>
                           </div>
-                          <span className="font-semibold text-slate-200">{candidate.email}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-5">
-                        <StatusBadge status={latestStatus} />
-                      </td>
-                      <td className="px-6 py-5">
-                        <span className="text-sm font-bold text-slate-400">{totalAttempts}</span>
-                      </td>
-                      <td className="px-6 py-5 text-slate-500 text-sm">
-                        {new Date(candidate.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-5 text-right">
-                        {bestScore !== null ? (
-                          <div className="inline-flex flex-col items-end">
-                            <span className="text-lg font-black text-white">{bestScore} <span className="text-[10px] text-slate-600 font-normal">pts</span></span>
-                          </div>
-                        ) : (
-                          <span className="text-slate-700 italic text-sm">Pending</span>
-                        )}
-                      </td>
-                    </tr>
+                        </td>
+                        <td className="px-6 py-5">
+                          <StatusBadge status={latestStatus} />
+                        </td>
+                        <td className="px-6 py-5">
+                          <span className="text-sm font-bold text-slate-400">{totalAttempts}</span>
+                        </td>
+                        <td className="px-6 py-5 text-slate-500 text-sm">
+                          {new Date(candidate.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-5 text-right">
+                          {bestScore !== null ? (
+                            <div className="inline-flex flex-col items-end">
+                              <span className="text-lg font-black text-white">{bestScore} <span className="text-[10px] text-slate-600 font-normal">pts</span></span>
+                            </div>
+                          ) : (
+                            <span className="text-slate-700 italic text-sm">Pending</span>
+                          )}
+                        </td>
+                      </tr>
+
+                      {/* Expandable detail row */}
+                      {isExpanded && (
+                        <tr key={`${candidate.id}-detail`}>
+                          <td colSpan={5} className="px-6 py-0">
+                            <div className="py-4 pl-14 pr-4 bg-slate-950/60 rounded-xl mb-3 border border-slate-800/30">
+                              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-3">All Test Attempts</span>
+                              <div className="space-y-2">
+                                {sortedApps.length > 0 ? sortedApps.map((app: any, idx: number) => {
+                                  const appScore = candidate.scores?.find((s: any) => s.applicationId === app.id);
+                                  return (
+                                    <div key={app.id} className="flex items-center justify-between py-3 px-4 rounded-lg bg-slate-900/50 border border-slate-800/30">
+                                      <div className="flex items-center gap-4">
+                                        <span className="text-xs font-bold text-slate-500 w-20">Attempt {sortedApps.length - idx}</span>
+                                        <span className="text-xs text-slate-500">{new Date(app.createdAt).toLocaleString()}</span>
+                                      </div>
+                                      <div className="flex items-center gap-4">
+                                        <StatusBadge status={app.status} />
+                                        {appScore ? (
+                                          <span className="text-sm font-black text-white min-w-[50px] text-right">{appScore.score} <span className="text-[10px] text-slate-600">pts</span></span>
+                                        ) : (
+                                          <span className="text-xs text-slate-600 italic min-w-[50px] text-right">—</span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                }) : (
+                                  <p className="text-sm text-slate-600 italic">No attempts recorded.</p>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </>
                   );
                 })
               ) : (
